@@ -1,8 +1,8 @@
 services:
   stratvis-api:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: backend/Dockerfile
     image: olihef/stratvis-api:local
     container_name: stratvis-api
     env_file:

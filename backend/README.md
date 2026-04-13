@@ -33,7 +33,7 @@ Server starts on `http://localhost:8080`.
 Build and run with Docker directly:
 
 ```bash
-docker build -t olihef/stratvis-api:local .
+docker build -f backend/Dockerfile -t olihef/stratvis-api:local ..
 docker run --rm -p 8080:8080 -e OPENAI_API_KEY=your_real_key_here olihef/stratvis-api:local
 ```
 
