@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { AnalysisOutput } from '@stratvis/contracts';
 import { ref } from 'vue';
 import DisplayView from './DisplayView.vue';
 
@@ -10,7 +11,7 @@ const selectedFile = ref<File | null>(null);
 const uploadError = ref('');
 
 const image = ref<ImageBitmap | null>(null);
-const analysis = ref<Object | null>(null);
+const analysis = ref<AnalysisOutput | null>(null);
 
 const openModal = (): void => {
 	uploadError.value = '';
@@ -48,7 +49,7 @@ const submitForAnalysis = async (): Promise<void> => {
 			throw new Error(`Request failed with status ${response.status}`);
 		}
 
-		const analysisResult = await response.json();
+		const analysisResult = (await response.json()) as AnalysisOutput;
 		console.info('Analysis response received:', analysisResult);
 		analysis.value = analysisResult;
 		isModalOpen.value = false;

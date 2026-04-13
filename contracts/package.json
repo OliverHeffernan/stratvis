@@ -1,0 +1,25 @@
+{
+  "name": "@stratvis/contracts",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "types": "src/generated/analysis-output-types.d.ts",
+  "files": [
+    "analysis-output-schema.json",
+    "src/generated/analysis-output-types.d.ts",
+    "scripts/generate-types.mjs"
+  ],
+  "exports": {
+    ".": {
+      "types": "./src/generated/analysis-output-types.d.ts",
+      "default": "./src/generated/analysis-output-types.d.ts"
+    },
+    "./analysis-output-schema.json": "./analysis-output-schema.json"
+  },
+  "scripts": {
+    "generate:types": "node ./scripts/generate-types.mjs"
+  },
+  "devDependencies": {
+    "json-schema-to-typescript": "^15.0.4"
+  }
+}

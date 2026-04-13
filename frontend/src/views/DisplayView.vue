@@ -3,10 +3,11 @@
 </template>
 
 <script setup lang="ts">
+import type { AnalysisOutput } from '@stratvis/contracts';
 import { onMounted, ref, watch } from 'vue';
 const props = defineProps<{
 	image: ImageBitmap | null;
-	analysis: Object;
+	analysis: AnalysisOutput;
 }>();
 
 const canvasRef = ref<HTMLCanvasElement | null>(null);

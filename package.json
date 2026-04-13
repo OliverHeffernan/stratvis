@@ -1,0 +1,8 @@
+{
+  "name": "stratvis",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "contracts"
+  ]
+}
