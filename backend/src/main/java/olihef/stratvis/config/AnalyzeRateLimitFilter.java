@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -19,12 +20,18 @@ public class AnalyzeRateLimitFilter extends OncePerRequestFilter {
 
     private static final long WINDOW_MILLIS = 30_000;
     private static final String ANALYZE_PATH = "/api/v1/analyze";
+    private static final Set<String> ALLOWED_ORIGINS = Set.of(
+            "http://localhost:5173",
+            "https://stratvis.olihef.com"
+    );
 
     private final ConcurrentHashMap<String, Long> lastRequestByUser = new ConcurrentHashMap<>();
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
+        applyCorsHeaders(request, response);
+
         if (!shouldRateLimit(request)) {
             filterChain.doFilter(request, response);
             return;
@@ -57,6 +64,18 @@ public class AnalyzeRateLimitFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private void applyCorsHeaders(HttpServletRequest request, HttpServletResponse response) {
+        String origin = request.getHeader("Origin");
+        if (origin == null || !ALLOWED_ORIGINS.contains(origin)) {
+            return;
+        }
+
+        response.setHeader("Access-Control-Allow-Origin", origin);
+        response.setHeader("Vary", "Origin");
+        response.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+        response.setHeader("Access-Control-Allow-Headers", "*");
     }
 
     private boolean shouldRateLimit(HttpServletRequest request) {
