@@ -20,10 +20,9 @@ const props = defineProps<{
 }>();
 
 function getColor(value: number): string {
-	console.log(value);
 	if (!props.negative) value = 100 - value;
 	if (value < 33) return 'green';
-	else if (value < 66) return 'yellow';
+	else if (value < 66) return 'orange';
 	else return 'red';
 }
 

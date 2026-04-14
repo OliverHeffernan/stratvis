@@ -13,6 +13,7 @@
 		<button @click="$emit('zoomIn')"><i class="fa-solid fa-plus"></i></button>
 		<button @click="$emit('zoomOut')"><i class="fa-solid fa-minus"></i></button>
 		<button @click="$emit('resetZoom')"><i class="fa-solid fa-crosshairs"></i></button>
+		<button @click="$emit('reportOpen')"><i class="fa-solid fa-file-lines"></i></button>
 	</div>
 	<div
 		class="sidebar"
@@ -102,6 +103,7 @@ defineEmits<{
 	zoomIn: [];
 	zoomOut: [];
 	resetZoom: [];
+	reportOpen: [];
 }>();
 
 const isOpen = ref(true);

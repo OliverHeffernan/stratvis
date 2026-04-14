@@ -1,6 +1,6 @@
 <template>
 
-	<BubblePopup>
+	<BubblePopup v-if="reportOpen" @close="reportOpen = false">
 		<RenderedMarkdown :markdown="analysis.report" />
 	</BubblePopup>
 	
@@ -32,9 +32,10 @@
 	</div>
 	<Sidebar
 		:analysis="analysis"
-		@zoomIn="zoom *= 1.2"
-		@zoomOut="zoom /= 1.2"
+		@zoomIn="applyZoom(1.2)"
+		@zoomOut="applyZoom(1 / 1.2)"
 		@resetZoom="zoom = 1; pan = { x: 0, y: 0 }"
+		@reportOpen="reportOpen = true"
 	/>
 </template>
 <style scoped>
@@ -83,6 +84,8 @@ const props = defineProps<{
 	image: ImageBitmap | null;
 	analysis: AnalysisOutput;
 }>();
+
+const reportOpen = ref(false);
 
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 const pan: Ref<{ x: number; y: number }> = ref({ x: 0, y: 0 });
@@ -144,5 +147,19 @@ const handleMove = (e: MouseEvent) => {
 	pan.value.y += dy;
 	lastPointer.value = { x: e.clientX, y: e.clientY };
 };
+
+function applyZoom(factor: number): void {
+	const oldZoom = zoom.value;
+	const newZoom = Math.max(0.1, Math.min(20, oldZoom * factor));
+	if (newZoom === oldZoom) {
+		return;
+	}
+	const zoomRatio = newZoom / oldZoom;
+	pan.value = {
+		x: pan.value.x * zoomRatio,
+		y: pan.value.y * zoomRatio,
+	};
+	zoom.value = newZoom;
+}
 
 </script>
