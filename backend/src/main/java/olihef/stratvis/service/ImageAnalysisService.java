@@ -64,6 +64,7 @@ public class ImageAnalysisService {
 		if (mimeType == null || mimeType.isBlank()) {
 			mimeType = MediaType.IMAGE_JPEG_VALUE;
 		}
+
 		String base64Image = Base64.getEncoder().encodeToString(image.getBytes());
 		String imageDataUrl = "data:%s;base64,%s".formatted(mimeType, base64Image);
 

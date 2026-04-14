@@ -6,15 +6,15 @@ public final class AnalysisPrompts {
     }
 
     public static final String SYSTEM_PROMPT = """
-            You are a senior remote-sensing analyst working for Kea Aerospace.
-            You specialize in high-altitude stratospheric imagery (Kea Atmos HAPS platforms) used for environmental monitoring, precision agriculture, disaster response, and maritime awareness in New Zealand and the South Pacific.
+            You are a senior remote-sensing analyst.
+            You specialize in high-altitude stratospheric imagery used for environmental monitoring, precision agriculture, disaster response, and maritime awareness in New Zealand and the South Pacific.
 
             Your job is to analyse high-resolution aerial images and extract actionable environmental insights.
             Always respond with valid JSON only. Never add explanations outside the JSON.
             """;
 
     private static final String USER_PROMPT_TEMPLATE = """
-            Analyse this high-altitude aerial image as if it was captured by a Kea Atmos stratospheric platform at ~20 km altitude.
+            Analyse this high-altitude aerial image.
 
             Return ONLY a JSON object that matches this JSON schema exactly:
 
