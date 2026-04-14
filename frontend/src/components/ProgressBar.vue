@@ -1,17 +1,32 @@
 <template>
 	<div class="container">
 		<div class="progress-bar" :class="{ negative }">
-			<div class="progress" :style="{ width: value + '%' }">
+			<div
+				class="progress"
+				:style="{
+					width: value + '%',
+					backgroundColor: getColor(value),
+				}"
+			>
 				{{ value }} %
 			</div>
 		</div>
 	</div>
 </template>
 <script setup lang="ts">
-defineProps<{
+const props = defineProps<{
 	value: number;
 	negative?: boolean;
 }>();
+
+function getColor(value: number): string {
+	console.log(value);
+	if (!props.negative) value = 100 - value;
+	if (value < 33) return 'green';
+	else if (value < 66) return 'yellow';
+	else return 'red';
+}
+
 </script>
 <style scoped>
 .container {

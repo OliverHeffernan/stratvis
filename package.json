@@ -4,5 +4,9 @@
   "workspaces": [
     "frontend",
     "contracts"
-  ]
+  ],
+  "dependencies": {
+    "dompurify": "^3.4.0",
+    "marked": "^18.0.0"
+  }
 }

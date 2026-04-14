@@ -1,19 +1,34 @@
 <template>
+
+	<BubblePopup>
+		<RenderedMarkdown :markdown="analysis.report" />
+	</BubblePopup>
+	
 	<div
 		class="container"
+		:class="{ dragging: isDragging }"
 		@mousedown="startDrag"
 		@mouseup="endDrag"
 		@mousemove="handleMove"
 		@mouseleave="endDrag"
 	>
-		<canvas
-			class="imgCanvas"
-			ref="canvasRef"
-			:style="{
-				transform: `translate(${pan.x}px, ${pan.y}px)`,
-				scale: zoom,
-			}"
-		></canvas>
+		<div class="stage" :style="stageStyle">
+			<canvas class="imgCanvas" ref="canvasRef"></canvas>
+			<div
+				class="pinsContainer"
+				:style="{
+					width: `${canvasRef?.width ?? 0}px`,
+					height: `${canvasRef?.height ?? 0}px`,
+					'--zoom': `${zoom}`,
+				}"
+			>
+				<Pinpoint
+					v-for="(point, index) in analysis.points_of_interest"
+					:key="index"
+					:pinpoint="point"
+				/>
+			</div>
+		</div>
 	</div>
 	<Sidebar
 		:analysis="analysis"
@@ -36,16 +51,34 @@
 	justify-content: center;
 	overflow: hidden;
 }
+.dragging {
+	cursor: grabbing;
+}
 
 .imgCanvas {
-	transition: scale 0.1s ease;
+	display: block;
+}
+
+.stage {
+	position: relative;
+	transform-origin: center center;
+}
+
+.pinsContainer {
+	position: absolute;
+	inset: 0;
+	z-index: 10;
+	pointer-events: none;
 }
 </style>
 
 <script setup lang="ts">
 import type { AnalysisOutput } from '@stratvis/contracts';
-import Sidebar from '../components/Sidebar.vue';
-import { onMounted, ref, watch, type Ref } from 'vue';
+import Sidebar from '@/components/Sidebar.vue';
+import Pinpoint from '@/components/Pinpoint.vue';
+import BubblePopup from '@/components/BubblePopup.vue';
+import RenderedMarkdown from '@/components/RenderedMarkdown.vue';
+import { computed, onMounted, ref, watch, type Ref } from 'vue';
 const props = defineProps<{
 	image: ImageBitmap | null;
 	analysis: AnalysisOutput;
@@ -54,6 +87,10 @@ const props = defineProps<{
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 const pan: Ref<{ x: number; y: number }> = ref({ x: 0, y: 0 });
 const zoom: Ref<number> = ref(1);
+const lastPointer: Ref<{ x: number; y: number } | null> = ref(null);
+const stageStyle = computed(() => ({
+	transform: `translate(${pan.value.x}px, ${pan.value.y}px) scale(${zoom.value})`,
+}));
 
 onMounted(() => {
 	if (props.image) {
@@ -91,15 +128,21 @@ const isDragging = ref(false);
 
 const startDrag = (e: MouseEvent) => {
 	isDragging.value = true;
+	lastPointer.value = { x: e.clientX, y: e.clientY };
 };
 
-const endDrag = (e: MouseEvent) => {
+const endDrag = () => {
 	isDragging.value = false;
+	lastPointer.value = null;
 };
 
 const handleMove = (e: MouseEvent) => {
-	if (!isDragging.value) return;
-	pan.value.x += e.movementX / zoom.value;
-	pan.value.y += e.movementY / zoom.value;
-}
+	if (!isDragging.value || !lastPointer.value) return;
+	const dx = e.clientX - lastPointer.value.x;
+	const dy = e.clientY - lastPointer.value.y;
+	pan.value.x += dx;
+	pan.value.y += dy;
+	lastPointer.value = { x: e.clientX, y: e.clientY };
+};
+
 </script>

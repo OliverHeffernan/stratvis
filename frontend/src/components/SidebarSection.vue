@@ -1,6 +1,6 @@
 <template>
 	<div class="sidebar-section">
-		<SectionHeader :icon="icon">
+		<SectionHeader :color="color" :icon="icon">
 			{{ title }}
 			<button @click="isOpen = !isOpen" class="toggle-button">
 				<i v-if="isOpen" class="fa-solid fa-chevron-up"></i>
@@ -19,6 +19,7 @@ const isOpen = ref(false);
 defineProps<{
 	title: string;
 	icon: string;
+	color?: string;
 }>();
 </script>
 <style scoped>
@@ -30,6 +31,7 @@ defineProps<{
 	margin-left: auto;
 	color: var(--primary);
 	font-size: inherit;
+	float: right;
 }
 
 .section-content {

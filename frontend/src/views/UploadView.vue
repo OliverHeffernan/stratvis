@@ -3,7 +3,8 @@ import type { AnalysisOutput } from '@stratvis/contracts';
 import { ref } from 'vue';
 import DisplayView from './DisplayView.vue';
 
-const API_URL = 'https://api-stratvis.olihef.com/api/v1/analyze';
+//const API_URL = 'https://api-stratvis.olihef.com/api/v1/analyze';
+const API_URL = 'http://localhost:8080/api/v1/analyze';
 
 const isModalOpen = ref(false);
 const isSubmitting = ref(false);
@@ -109,19 +110,23 @@ const submitForAnalysis = async (): Promise<void> => {
 	background: transparent;
 	border: 0;
 	padding: 0;
+	font-size: 120px;
+	cursor: pointer;
 }
 
 .upload-button i {
 	color: var(--sec);
 	transition:
 		color 0.2s ease,
-		opacity 0.2s ease;
+		opacity 0.2s ease,
+		transform 0.2s ease;
+	text-shadow: 0 0 3px rgba(255, 255, 255, 0.4);
 }
 
-.upload-button i:hover {
+.upload-button:hover i {
 	color: var(--text);
 	opacity: 0.5;
-	cursor: pointer;
+	transform: translateY(-10px);
 }
 
 .modal-backdrop {
