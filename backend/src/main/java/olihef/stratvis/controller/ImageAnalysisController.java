@@ -5,6 +5,7 @@ import olihef.stratvis.service.ImageAnalysisService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -41,8 +42,20 @@ public class ImageAnalysisController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", ex.getMessage()));
     }
 
+    @ExceptionHandler(HttpStatusCodeException.class)
+    public ResponseEntity<Map<String, Object>> handleProviderHttpError(HttpStatusCodeException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(Map.of(
+                "error", "OpenAI API returned an error.",
+                "provider_status", ex.getStatusCode().value(),
+                "provider_body", ex.getResponseBodyAsString()
+        ));
+    }
+
     @ExceptionHandler({IOException.class, RestClientException.class})
-    public ResponseEntity<Map<String, String>> handleProviderOrIoError(Exception ex) {
-        return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(Map.of("error", "Failed to analyze image with OpenAI API."));
+    public ResponseEntity<Map<String, Object>> handleProviderOrIoError(Exception ex) {
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(Map.of(
+                "error", "Failed to analyze image with OpenAI API.",
+                "details", ex.getMessage() == null ? "No additional details available." : ex.getMessage()
+        ));
     }
 }

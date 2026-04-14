@@ -11,6 +11,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -95,8 +96,14 @@ public class ImageAnalysisService {
 		headers.setBearerAuth(apiKey);
 
 		HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
-
-		ResponseEntity<String> response = restTemplate.exchange(apiUrl, HttpMethod.POST, requestEntity, String.class);
+		ResponseEntity<String> response;
+		try {
+			response = restTemplate.exchange(apiUrl, HttpMethod.POST, requestEntity, String.class);
+		} catch (HttpStatusCodeException ex) {
+			throw ex;
+		} catch (Exception ex) {
+			throw new IllegalStateException("OpenAI request failed: " + ex.getMessage(), ex);
+		}
 		JsonNode root = objectMapper.readTree(response.getBody());
 		JsonNode contentNode = root.path("choices").path(0).path("message").path("content");
 		if (contentNode.isMissingNode() || contentNode.asText().isBlank()) {
