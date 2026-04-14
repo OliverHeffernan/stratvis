@@ -234,6 +234,8 @@
 					"y",
 					"message",
 					"long_message",
+					"placement_rationale",
+					"feature",
 					"type"
 				],
 				"properties": {

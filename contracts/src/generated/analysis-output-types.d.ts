@@ -64,11 +64,11 @@ export interface AnalysisOutput {
     /**
      * Explanation of why this point of interest was identified and placed at these coordinates. Include details about the features or patterns in the image that led to this conclusion, and the placement of the point.
      */
-    placement_rationale?: string;
+    placement_rationale: string;
     /**
      * Should be a one word description of the feature that is being pointed out by this point of interest. This may include the following features, but is not limited to: erosion, sediment, turbidity, algal_bloom, deforestation, flooding, landslide_scar, fire_scar, visible_pollution, vegetation_loss, vegetation_stress, restoration_signals...
      */
-    feature?: string;
+    feature: string;
     /**
      * 0 means environmental danger, that is impacting the environment negatively presently. 1 means environmental threat, which could impact the environment negatively in the future if no action is taken. 2 means environmental opportunity, which is a positive finding that could be built upon to further improve the environment in this area.
      */
