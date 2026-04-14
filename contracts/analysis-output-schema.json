@@ -227,7 +227,7 @@
 			"type": "array",
 			"items": {
 				"type": "object",
-				"description": "A point of interest in the image, which can be an environmental danger, threat, or opportunity.",
+				"description": "A point of interest in the image, which can be an environmental danger, threat, or opportunity. Only include points of interest that are clearly identifiable in the image and have significant environmental implications. Each point of interest should be placed at the specific coordinates in the image that correspond to the feature being described, and the message and long_message fields should provide clear and detailed explanations of why this point is important and what it means for the environment in this area. The placement_rationale field should explain why this point was identified and placed at these coordinates, including details about the features or patterns in the image that led to this conclusion. The feature field should provide a one word description of the feature that is being pointed out by this point of interest, which can help to categorize and summarize the findings. The type field should indicate whether this point of interest represents an environmental danger, threat, or opportunity, which can help to prioritize actions and responses based on the severity and urgency of the findings.",
 				"additionalProperties": false,
 				"required": [
 					"x",
