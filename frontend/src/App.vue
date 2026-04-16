@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router';
+import Feedback from '@/components/Feedback.vue';
 </script>
 
 <template>
+	<Feedback />
 	<RouterView />
 </template>
 

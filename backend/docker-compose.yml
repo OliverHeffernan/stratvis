@@ -11,4 +11,9 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
     ports:
       - "8080:8080"
+    volumes:
+      - stratvis_feedback_logs:/var/log/stratvis
     restart: unless-stopped
+
+volumes:
+  stratvis_feedback_logs:

@@ -1,8 +1,9 @@
 package olihef.stratvis.service;
 
+import olihef.stratvis.prompt.AnalysisPrompts;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import olihef.stratvis.prompt.AnalysisPrompts;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpEntity;
@@ -52,21 +53,7 @@ public class ImageAnalysisService {
 			throw new IllegalStateException("Failed to initialize analysis JSON schema.", e);
 		}
 	}
-
-	public JsonNode analyze(MultipartFile image) throws IOException {
-		if (apiKey == null || apiKey.isBlank()) {
-			throw new IllegalStateException("OPENAI_API_KEY is not configured.");
-		}
-		if (image == null || image.isEmpty()) {
-			throw new IllegalArgumentException("Image file is required.");
-		}
-
-		String mimeType = image.getContentType();
-		if (mimeType == null || mimeType.isBlank()) {
-			mimeType = MediaType.IMAGE_JPEG_VALUE;
-		}
-
-		String base64Image = Base64.getEncoder().encodeToString(image.getBytes());
+	public JsonNode analyzeBase64Image(String base64Image, String mimeType) throws IOException {
 		String imageDataUrl = "data:%s;base64,%s".formatted(mimeType, base64Image);
 
 		Map<String, Object> requestBody = Map.of(
@@ -110,5 +97,22 @@ public class ImageAnalysisService {
 			throw new IllegalStateException("OpenAI response did not include message content.");
 		}
 		return objectMapper.readTree(contentNode.asText());
+	}
+
+	public JsonNode analyze(MultipartFile image) throws IOException {
+		if (apiKey == null || apiKey.isBlank()) {
+			throw new IllegalStateException("OPENAI_API_KEY is not configured.");
+		}
+		if (image == null || image.isEmpty()) {
+			throw new IllegalArgumentException("Image file is required.");
+		}
+
+		String mimeType = image.getContentType();
+		if (mimeType == null || mimeType.isBlank()) {
+			mimeType = MediaType.IMAGE_JPEG_VALUE;
+		}
+
+		String base64Image = Base64.getEncoder().encodeToString(image.getBytes());
+		return analyzeBase64Image(base64Image, mimeType);
 	}
 }

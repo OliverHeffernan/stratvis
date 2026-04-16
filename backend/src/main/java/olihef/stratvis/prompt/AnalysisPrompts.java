@@ -20,6 +20,12 @@ public final class AnalysisPrompts {
 
             %s
 
+            Keep explanations concise and grounded in clearly visible evidence.
+            Do not invent detections when visual confidence is low.
+            For each point_of_interest, return exactly 3 coordinate guesses in `points`.
+            Each guess must use normalized coordinates (x and y between 0 and 1).
+            Keep guesses tightly clustered around the same visual feature center; do not spread across unrelated locations.
+
             For points_of_interest.type:
             - 0 = danger (currently impacting the environment)
             - 1 = threat (could impact the environment if no action is taken)

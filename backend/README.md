@@ -43,6 +43,16 @@ Or use Docker Compose (reads `.env` automatically):
 docker compose up --build
 ```
 
+### Viewing logs
+The project has a log file called feedback.log.
+If running with Docker Compose, you can view the logs by entering shell in the container as follows:
+```bash
+docker exec -it stratvis-api sh
+tail -n 50 /var/log/stratvis/feedback.log
+```
+
+You can then type `exit` to exit the shell.
+
 ## API
 
 ### `POST /api/v1/analyze`

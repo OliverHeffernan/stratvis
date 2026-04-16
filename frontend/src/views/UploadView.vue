@@ -3,7 +3,7 @@ import type { AnalysisOutput } from '@stratvis/contracts';
 import { ref } from 'vue';
 import DisplayView from './DisplayView.vue';
 
-const API_URL = 'https://api-stratvis.olihef.com/api/v1/analyze';
+const API_URL = import.meta.env.VITE_API_ROOT + '/api/v1/analyze';
 //const API_URL = 'http://localhost:8080/api/v1/analyze';
 
 const isModalOpen = ref(false);

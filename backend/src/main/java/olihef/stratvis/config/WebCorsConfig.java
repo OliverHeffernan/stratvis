@@ -16,6 +16,7 @@ public class WebCorsConfig implements WebMvcConfigurer {
 			)
 			.allowedMethods("GET", "POST", "OPTIONS")
 			.allowedHeaders("*")
+			.exposedHeaders("X-Session-Id", "X-Used-Zoom")
 			.maxAge(3600);
 	}
 }

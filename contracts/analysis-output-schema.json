@@ -230,8 +230,8 @@
 				"description": "A point of interest in the image, which can be an environmental danger, threat, or opportunity. Only include points of interest that are clearly identifiable in the image and have significant environmental implications. Each point of interest should be placed at the specific coordinates in the image that correspond to the feature being described, and the message and long_message fields should provide clear and detailed explanations of why this point is important and what it means for the environment in this area. The placement_rationale field should explain why this point was identified and placed at these coordinates, including details about the features or patterns in the image that led to this conclusion. The feature field should provide a one word description of the feature that is being pointed out by this point of interest, which can help to categorize and summarize the findings. The type field should indicate whether this point of interest represents an environmental danger, threat, or opportunity, which can help to prioritize actions and responses based on the severity and urgency of the findings.",
 				"additionalProperties": false,
 				"required": [
-					"x",
-					"y",
+					"points",
+					"range",
 					"message",
 					"long_message",
 					"placement_rationale",
@@ -239,17 +239,38 @@
 					"type"
 				],
 				"properties": {
-					"x": {
-						"type": "number",
-						"description": "X coordinate as a percentage of the image width (0-100). 0 = left edge, 100 = right edge.",
-						"minimum": 0,
-						"maximum": 100
+					"points": {
+						"type": "array",
+						"minItems": 3,
+						"maxItems": 3,
+						"description": "Exactly 3 candidate guesses for this point of interest location. Coordinates are normalized to the image dimensions.",
+						"items": {
+							"type": "object",
+							"additionalProperties": false,
+							"required": [
+								"x",
+								"y"
+							],
+							"properties": {
+								"x": {
+									"type": "number",
+									"minimum": 0,
+									"maximum": 1,
+									"description": "X coordinate normalized from 0 (left edge) to 1 (right edge)."
+								},
+								"y": {
+									"type": "number",
+									"minimum": 0,
+									"maximum": 1,
+									"description": "Y coordinate normalized from 0 (top edge) to 1 (bottom edge)."
+								}
+							}
+						}
 					},
-					"y": {
+					"range": {
 						"type": "number",
-						"description": "Y coordinate as a percentage of the image height (0-100). 0 = top edge, 100 = bottom edge.",
 						"minimum": 0,
-						"maximum": 100
+						"description": "Radius in pixels around the averaged point indicating placement uncertainty."
 					},
 					"message": {
 						"type": "string",

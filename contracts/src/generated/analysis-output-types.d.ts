@@ -46,13 +46,47 @@ export interface AnalysisOutput {
   };
   points_of_interest: {
     /**
-     * X coordinate as a percentage of the image width (0-100). 0 = left edge, 100 = right edge.
+     * Exactly 3 candidate guesses for this point of interest location. Coordinates are normalized to the image dimensions.
+     *
+     * @minItems 3
+     * @maxItems 3
      */
-    x: number;
+    points: [
+      {
+        /**
+         * X coordinate normalized from 0 (left edge) to 1 (right edge).
+         */
+        x: number;
+        /**
+         * Y coordinate normalized from 0 (top edge) to 1 (bottom edge).
+         */
+        y: number;
+      },
+      {
+        /**
+         * X coordinate normalized from 0 (left edge) to 1 (right edge).
+         */
+        x: number;
+        /**
+         * Y coordinate normalized from 0 (top edge) to 1 (bottom edge).
+         */
+        y: number;
+      },
+      {
+        /**
+         * X coordinate normalized from 0 (left edge) to 1 (right edge).
+         */
+        x: number;
+        /**
+         * Y coordinate normalized from 0 (top edge) to 1 (bottom edge).
+         */
+        y: number;
+      }
+    ];
     /**
-     * Y coordinate as a percentage of the image height (0-100). 0 = top edge, 100 = bottom edge.
+     * Radius in pixels around the averaged point indicating placement uncertainty.
      */
-    y: number;
+    range: number;
     /**
      * A one sentence heading/label describing the point of interest.
      */

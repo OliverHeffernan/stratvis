@@ -1,9 +1,18 @@
 <template>
 	<div
+		class="area"
+		:style="{
+			left: position.x * 100 + '%',
+			top: position.y * 100 + '%',
+			width: pinpoint.range + 'px',
+			height: pinpoint.range + 'px',
+		}"
+	></div>
+	<div
 		class="pinContainer"
 		:style="{
-			left: pinpoint.x + '%',
-			top: pinpoint.y + '%',
+			left: position.x * 100 + '%',
+			top: position.y * 100 + '%',
 		}"
 	>
 		<i
@@ -21,6 +30,7 @@
 </template>
 <script setup lang="ts">
 import type { AnalysisOutput } from '@stratvis/contracts';
+import { computed } from 'vue';
 type PointOfInterest = AnalysisOutput['points_of_interest'][number];
 type PinType = PointOfInterest['type'];
 
@@ -38,6 +48,24 @@ function colorFromType(type: PinType): string {
 const props = defineProps<{
 	pinpoint: PointOfInterest;
 }>();
+
+const position = computed(() => {
+	const guesses = props.pinpoint.points;
+	const guessCount = guesses.length;
+
+	const avgX = guesses.reduce((sum, p) => sum + p.x, 0) / guessCount;
+	const avgY = guesses.reduce((sum, p) => sum + p.y, 0) / guessCount;
+
+	return {
+		x: clamp01(avgX),
+		y: clamp01(avgY),
+	};
+});
+
+function clamp01(value: number): number {
+	return Math.max(0, Math.min(1, value));
+}
+
 </script>
 <style scoped>
 .pinContainer {
@@ -84,5 +112,14 @@ const props = defineProps<{
 	font-size: 14px;
 	width: 100%;
 	white-space: normal;
+}
+
+.area {
+	position: absolute;
+	border: 2px solid red;
+	border-radius: 50%;
+	transform: translate(-50%, -50%);
+	opacity: 0.3;
+	pointer-events: none;
 }
 </style>

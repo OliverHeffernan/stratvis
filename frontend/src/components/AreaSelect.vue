@@ -12,6 +12,21 @@
 </template>
 <script setup lang="ts">
 import { computed, ref } from 'vue';
+
+type SelectionRect = {
+	x0: number;
+	y0: number;
+	x1: number;
+	y1: number;
+	width: number;
+	height: number;
+};
+
+const emit = defineEmits<{
+	complete: [rect: SelectionRect];
+	cancelled: [];
+}>();
+
 const startPoint = ref<{ x: number; y: number } | null>(null);
 const currentPoint = ref<{ x: number; y: number } | null>(null);
 let dragging = false;
@@ -66,10 +81,18 @@ const start = (e: MouseEvent) => {
 };
 
 const end = (e: MouseEvent) => {
-	
 	if (startPoint.value) {
 		currentPoint.value = { x: e.clientX, y: e.clientY };
-		// Here you can emit an event with the selected rectangle coordinates
+		if (selectionRect.value && selectionRect.value.width > 0 && selectionRect.value.height > 0) {
+			emit('complete', {
+				x0: selectionRect.value.x0,
+				y0: selectionRect.value.y0,
+				x1: selectionRect.value.x1,
+				y1: selectionRect.value.y1,
+				width: selectionRect.value.width,
+				height: selectionRect.value.height,
+			});
+		}
 	}
 	dragging = false;
 };
@@ -80,6 +103,7 @@ const cancel = () => {
 	startPoint.value = null;
 	currentPoint.value = null;
 	dragging = false;
+	emit('cancelled');
 };
 
 const move = (e: MouseEvent) => {
