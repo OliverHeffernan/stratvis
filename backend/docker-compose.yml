@@ -9,11 +9,14 @@ services:
       - .env
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - SQLITE_DB_PATH=/var/lib/stratvis/stratvis.db
     ports:
       - "8080:8080"
     volumes:
       - stratvis_feedback_logs:/var/log/stratvis
+      - stratvis_data:/var/lib/stratvis
     restart: unless-stopped
 
 volumes:
   stratvis_feedback_logs:
+  stratvis_data:

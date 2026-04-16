@@ -26,6 +26,7 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { Map } from 'maplibre-gl';
 import { useRouter, type Router } from 'vue-router';
+import { authFetch, clearAuthToken, getApiBase } from '@/lib/auth';
 const router: Router = useRouter();
 import AreaSelect from '@/components/AreaSelect.vue';
 
@@ -38,7 +39,7 @@ type SelectionRect = {
 	height: number;
 };
 
-const apiBase = ((import.meta.env.VITE_API_URL as string | undefined) ?? (import.meta.env.VITE_API_ROOT as string | undefined) ?? 'http://localhost:8080').replace(/\/$/, '');
+const apiBase = getApiBase();
 const TILE_STITCH_URL = `${apiBase}/api/v1/tiles/stitch`;
 const ANALYZE_SESSION_URL = `${apiBase}/api/v1/analyze-session`;
 const map = ref<any>(null);
@@ -121,9 +122,14 @@ async function handleSelectionComplete(rect: SelectionRect): Promise<void> {
 		}
 
 		isAnalyzing.value = true;
-		const analyzeResponse = await fetch(`${ANALYZE_SESSION_URL}?sessionId=${encodeURIComponent(sessionIdHeader)}`, {
+		const analyzeResponse = await authFetch(`${ANALYZE_SESSION_URL}?sessionId=${encodeURIComponent(sessionIdHeader)}`, {
 			method: 'POST',
 		});
+		if (analyzeResponse.status === 401) {
+			clearAuthToken();
+			router.push({ name: 'login' });
+			return;
+		}
 		if (!analyzeResponse.ok) {
 			const bodyText = await analyzeResponse.text();
 			throw new Error(bodyText || `Analyze session failed with status ${analyzeResponse.status}`);
@@ -158,7 +164,12 @@ async function fetchStitchedImageWithFallback(
 			zoom: zoom.toString(),
 		});
 
-		const response = await fetch(`${TILE_STITCH_URL}?${params.toString()}`);
+		const response = await authFetch(`${TILE_STITCH_URL}?${params.toString()}`);
+		if (response.status === 401) {
+			clearAuthToken();
+			router.push({ name: 'login' });
+			throw new Error('Authentication required. Please sign in again.');
+		}
 		if (!response.ok) {
 			const errorText = await response.text();
 			lastError = errorText || `Tile stitch failed with status ${response.status}`;

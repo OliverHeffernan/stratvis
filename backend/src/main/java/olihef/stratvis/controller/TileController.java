@@ -1,7 +1,10 @@
 package olihef.stratvis.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
+import olihef.stratvis.auth.AuthContext;
+import olihef.stratvis.auth.AuthenticatedUser;
 import olihef.stratvis.service.TileStitchService;
-import olihef.stratvis.sessions.*;
+import olihef.stratvis.sessions.SessionService;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -18,13 +21,16 @@ import java.io.IOException;
 public class TileController {
 
 	private final TileStitchService tileStitchService;
+	private final SessionService sessionService;
 
-	public TileController(TileStitchService tileStitchService) {
+	public TileController(TileStitchService tileStitchService, SessionService sessionService) {
 		this.tileStitchService = tileStitchService;
+		this.sessionService = sessionService;
 	}
 
 	@GetMapping(value = "/stitch", produces = MediaType.IMAGE_PNG_VALUE)
 	public ResponseEntity<byte[]> stitch(
+		HttpServletRequest request,
 		@RequestParam("minLng") double minLng,
 		@RequestParam("minLat") double minLat,
 		@RequestParam("maxLng") double maxLng,
@@ -40,7 +46,15 @@ public class TileController {
 		);
 
 		byte[] png = stitchResult.png();
-		int id = SessionsManager.addNewSessionWithSnapshot(minLng, minLat, maxLng, maxLat, stitchResult.usedZoom());
+		AuthenticatedUser user = AuthContext.requireUser(request);
+		int id = sessionService.createSessionWithSnapshot(
+			user.id(),
+			minLng,
+			minLat,
+			maxLng,
+			maxLat,
+			stitchResult.usedZoom()
+		);
 
 		// put the id into the response header so the client can use it for future requests related to this session
 		// in javascript the client can do something like this to extract the session id from the response header:

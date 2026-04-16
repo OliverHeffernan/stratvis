@@ -1,10 +1,16 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router';
+import { computed } from 'vue';
+import NavBar from '@/components/NavBar.vue';
 import Feedback from '@/components/Feedback.vue';
+import { isAuthenticated } from '@/lib/auth';
+
+const showFeedback = computed(() => isAuthenticated());
 </script>
 
 <template>
-	<Feedback />
+	<NavBar />
+	<Feedback v-if="showFeedback" />
 	<RouterView />
 </template>
 

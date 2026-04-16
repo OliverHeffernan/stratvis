@@ -35,13 +35,14 @@ import LoadingView from './LoadingView.vue';
 import Sidebar from '@/components/Sidebar.vue';
 import BubblePopup from '@/components/BubblePopup.vue';
 import RenderedMarkdown from '@/components/RenderedMarkdown.vue';
+import { authFetch, clearAuthToken, getApiBase } from '@/lib/auth';
 import type Session from '@/types/Session';
 import type { AnalysisPoiWithMap, AnalysisWithMap, Snapshot } from '@/types/Session';
 
 const route = useRoute();
 const router = useRouter();
 
-const apiBase = (import.meta.env.VITE_API_ROOT as string | undefined)?.replace(/\/$/, '') ?? 'http://localhost:8080';
+const apiBase = getApiBase();
 const ANALYZE_SESSION_URL = `${apiBase}/api/v1/analyze-session`;
 
 const isLoading = ref(true);
@@ -64,9 +65,15 @@ onMounted(async () => {
 	}
 
 	try {
-		const response = await fetch(`${ANALYZE_SESSION_URL}?sessionId=${encodeURIComponent(sessionId)}`, {
+		const response = await authFetch(`${ANALYZE_SESSION_URL}?sessionId=${encodeURIComponent(sessionId)}`, {
 			method: 'POST',
 		});
+
+		if (response.status === 401) {
+			clearAuthToken();
+			router.push({ name: 'login' });
+			return;
+		}
 
 		if (!response.ok) {
 			throw new Error(`Analyze session failed with status ${response.status}`);
