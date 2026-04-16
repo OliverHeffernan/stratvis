@@ -53,6 +53,7 @@ const hoveredPoi = ref<{ message: string; longMessage: string } | null>(null);
 
 let map: Map | null = null;
 const poiMarkers: maplibregl.Marker[] = [];
+let hoveredRangeFeatureId: string | number | null = null;
 
 onMounted(async () => {
 	const sessionId = String(route.query.sessionId ?? '');
@@ -220,6 +221,7 @@ function renderPoiRangeCircles(): void {
 	}
 
 	const circleFeatures: GeoJSON.Feature<GeoJSON.Polygon>[] = [];
+	let featureIndex = 0;
 	for (const poi of analysis.value.points_of_interest) {
 		if (typeof poi.lng !== 'number' || typeof poi.lat !== 'number') {
 			continue;
@@ -230,9 +232,11 @@ function renderPoiRangeCircles(): void {
 		}
 
 		circleFeatures.push({
+			id: featureIndex++,
 			type: 'Feature',
 			geometry: makeCirclePolygon(poi.lng, poi.lat, rangeMeters),
 			properties: {
+				type: poi.type,
 				message: poi.message,
 				long_message: poi.long_message,
 				lng: poi.lng,
@@ -256,18 +260,117 @@ function renderPoiRangeCircles(): void {
 		type: 'fill',
 		source: 'poi-ranges',
 		paint: {
-			'fill-color': '#ff4c71',
-			'fill-opacity': 0.1,
+			'fill-color': [
+				'match',
+				['get', 'type'],
+				0, '#ff4c71',
+				1, '#d98a00',
+				2, '#00a86b',
+				'#ff4c71',
+			],
+			'fill-opacity': [
+				'case',
+				['boolean', ['feature-state', 'hover'], false],
+				0.28,
+				0.18,
+			],
 		},
 	});
 
 	map.addLayer({
-		id: 'poi-ranges-line',
+		id: 'poi-ranges-black-outline',
 		type: 'line',
 		source: 'poi-ranges',
 		paint: {
+			'line-color': '#000000',
+			'line-opacity': 0.9,
+			'line-width': [
+				'case',
+				['boolean', ['feature-state', 'hover'], false],
+				10,
+				8,
+			],
+		},
+	});
+
+	map.addLayer({
+		id: 'poi-ranges-outline',
+		type: 'line',
+		source: 'poi-ranges',
+		paint: {
+			'line-color': '#ffffff',
+			'line-opacity': 0.95,
+			'line-width': [
+				'case',
+				['boolean', ['feature-state', 'hover'], false],
+				6.5,
+				5,
+			],
+		},
+	});
+
+	map.addLayer({
+		id: 'poi-ranges-danger-line',
+		type: 'line',
+		source: 'poi-ranges',
+		filter: ['==', ['get', 'type'], 0],
+		paint: {
 			'line-color': '#ff4c71',
-			'line-width': 1.5,
+			'line-width': [
+				'case',
+				['boolean', ['feature-state', 'hover'], false],
+				2.6,
+				1.8,
+			],
+		},
+	});
+
+	map.addLayer({
+		id: 'poi-ranges-threat-line',
+		type: 'line',
+		source: 'poi-ranges',
+		filter: ['==', ['get', 'type'], 1],
+		paint: {
+			'line-color': '#d98a00',
+			'line-width': [
+				'case',
+				['boolean', ['feature-state', 'hover'], false],
+				2.6,
+				1.8,
+			],
+		},
+	});
+
+	map.addLayer({
+		id: 'poi-ranges-opportunity-line',
+		type: 'line',
+		source: 'poi-ranges',
+		filter: ['==', ['get', 'type'], 2],
+		paint: {
+			'line-color': '#00a86b',
+			'line-width': [
+				'case',
+				['boolean', ['feature-state', 'hover'], false],
+				2.6,
+				1.8,
+			],
+		},
+	});
+
+	map.addLayer({
+		id: 'poi-ranges-glow',
+		type: 'line',
+		source: 'poi-ranges',
+		paint: {
+			'line-color': '#ffffff',
+			'line-opacity': [
+				'case',
+				['boolean', ['feature-state', 'hover'], false],
+				0.35,
+				0,
+			],
+			'line-width': 8,
+			'line-blur': 1,
 		},
 	});
 
@@ -284,6 +387,7 @@ function renderPoiRangeCircles(): void {
 		}
 		map.getCanvas().style.cursor = '';
 		hoveredPoi.value = null;
+		clearRangeHoverState();
 	});
 
 	map.on('mousemove', (event) => {
@@ -295,6 +399,7 @@ function renderPoiRangeCircles(): void {
 		if (features.length === 0) {
 			hoveredPoi.value = null;
 			map.getCanvas().style.cursor = '';
+			clearRangeHoverState();
 			return;
 		}
 		map.getCanvas().style.cursor = 'pointer';
@@ -302,19 +407,41 @@ function renderPoiRangeCircles(): void {
 		const feature = features[0];
 		if (!feature) {
 			hoveredPoi.value = null;
+			clearRangeHoverState();
 			return;
 		}
+
+		const featureId = feature.id;
+		if (featureId !== undefined && hoveredRangeFeatureId !== featureId) {
+			clearRangeHoverState();
+			map.setFeatureState({ source: 'poi-ranges', id: featureId }, { hover: true });
+			hoveredRangeFeatureId = featureId;
+		}
+
 		const properties = feature.properties ?? {};
 		const message = String(properties.message ?? 'Point of interest');
 		const longMessage = String(properties.long_message ?? '');
 		hoveredPoi.value = { message, longMessage };
 	});
+
+	map.on('mouseleave', 'poi-ranges-danger-line', clearRangeHoverState);
+	map.on('mouseleave', 'poi-ranges-threat-line', clearRangeHoverState);
+	map.on('mouseleave', 'poi-ranges-opportunity-line', clearRangeHoverState);
+}
+
+function clearRangeHoverState(): void {
+	if (!map || hoveredRangeFeatureId == null) {
+		return;
+	}
+	map.setFeatureState({ source: 'poi-ranges', id: hoveredRangeFeatureId }, { hover: false });
+	hoveredRangeFeatureId = null;
 }
 
 function clearMarkers(): void {
 	while (poiMarkers.length > 0) {
 		poiMarkers.pop()?.remove();
 	}
+	clearRangeHoverState();
 	hoveredPoi.value = null;
 }
 

@@ -80,8 +80,8 @@ function submit() {
 .open-button {
 	position: fixed;
 	bottom: 20px;
-	right: 20px;
-	z-index: 1000;
+	left: 20px;
+	z-index: 50;
 }
 
 input {

@@ -1,9 +1,4 @@
 <template>
-	<button
-		v-if="stitchedImageUrl"
-		class="analysis-button"
-		@click="submitForAnalysis"
-	>Analyze</button>
 	<h1 class="desciptor">Choose an area to analyse using the <i class="fa-solid fa-crop"></i> button in the top right corner</h1>
 	<AreaSelect
 		v-if="selecting"
@@ -18,15 +13,12 @@
 			:class="{ active: selecting }"
 		><i class="fa-solid fa-crop"></i></button>
 	</div>
-	<div v-if="isFetching || fetchError || stitchedImageUrl" class="resultCard">
-		<p v-if="isFetching">Fetching stitched image...</p>
-		<p v-if="fetchError" class="error">{{ fetchError }}</p>
-		<template v-if="stitchedImageUrl">
-			<p>Stitched image preview</p>
-			<p class="meta">{{ stitchedImageInfo }}</p>
-			<img :src="stitchedImageUrl" alt="Selected area stitched from map tiles" />
-			<a :href="stitchedImageUrl" target="_blank" rel="noopener">Open full image</a>
-		</template>
+	<div v-if="isFetching || isAnalyzing" class="loadingCard">
+		<i class="fa-solid fa-spinner spin"></i>
+		<p>{{ isAnalyzing ? 'Analysis loading...' : 'Preparing snapshot...' }}</p>
+	</div>
+	<div v-if="fetchError" class="errorCard">
+		<p class="error">{{ fetchError }}</p>
 	</div>
 	<div id="map"></div>
 </template>
@@ -46,16 +38,15 @@ type SelectionRect = {
 	height: number;
 };
 
-const apiBase = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') ?? 'http://localhost:8080';
-const API_URL = `${apiBase}/api/v1/tiles/stitch`;
+const apiBase = ((import.meta.env.VITE_API_URL as string | undefined) ?? (import.meta.env.VITE_API_ROOT as string | undefined) ?? 'http://localhost:8080').replace(/\/$/, '');
+const TILE_STITCH_URL = `${apiBase}/api/v1/tiles/stitch`;
+const ANALYZE_SESSION_URL = `${apiBase}/api/v1/analyze-session`;
 const map = ref<any>(null);
 
 const selecting = ref(false);
 const isFetching = ref(false);
+const isAnalyzing = ref(false);
 const fetchError = ref('');
-const stitchedImageUrl = ref<string | null>(null);
-const stitchedImageInfo = ref('');
-const sessionId = ref<string | null>(null);
 
 onMounted(() => {
 	map.value = new Map({
@@ -87,9 +78,6 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-	if (stitchedImageUrl.value) {
-		URL.revokeObjectURL(stitchedImageUrl.value);
-	}
 	if (map.value) {
 		map.value.remove();
 		map.value = null;
@@ -103,8 +91,8 @@ async function handleSelectionComplete(rect: SelectionRect): Promise<void> {
 
 	selecting.value = false;
 	fetchError.value = '';
-	stitchedImageInfo.value = '';
 	isFetching.value = true;
+	isAnalyzing.value = false;
 
 	try {
 		const northWest = map.value.unproject([rect.x0, rect.y0]);
@@ -127,24 +115,26 @@ async function handleSelectionComplete(rect: SelectionRect): Promise<void> {
 			fallbackZoom,
 		);
 
-		const { blob, usedZoom, sessionIdHeader } = stitchedResult;
-		const bitmap = await createImageBitmap(blob);
-		stitchedImageInfo.value = `${bitmap.width} x ${bitmap.height} px @ z${usedZoom}`;
-		bitmap.close();
-
-		if (stitchedImageUrl.value) {
-			URL.revokeObjectURL(stitchedImageUrl.value);
-		}
-		stitchedImageUrl.value = URL.createObjectURL(blob);
-		sessionId.value = sessionIdHeader;
-		if (!sessionId.value) {
+		const { sessionIdHeader } = stitchedResult;
+		if (!sessionIdHeader) {
 			throw new Error('Missing session id in stitch response header.');
 		}
+
+		isAnalyzing.value = true;
+		const analyzeResponse = await fetch(`${ANALYZE_SESSION_URL}?sessionId=${encodeURIComponent(sessionIdHeader)}`, {
+			method: 'POST',
+		});
+		if (!analyzeResponse.ok) {
+			const bodyText = await analyzeResponse.text();
+			throw new Error(bodyText || `Analyze session failed with status ${analyzeResponse.status}`);
+		}
+
+		router.push({ name: 'analysis', query: { sessionId: sessionIdHeader } });
 	} catch (error) {
 		fetchError.value = error instanceof Error ? error.message : 'Failed to stitch selected area image.';
-		sessionId.value = null;
 	} finally {
 		isFetching.value = false;
+		isAnalyzing.value = false;
 	}
 }
 
@@ -155,7 +145,7 @@ async function fetchStitchedImageWithFallback(
 	maxLat: number,
 	preferredZoom: number,
 	fallbackZoom: number,
-): Promise<{ blob: Blob; usedZoom: number; sessionIdHeader: string }> {
+): Promise<{ usedZoom: number; sessionIdHeader: string }> {
 	const zoomCandidates = preferredZoom === fallbackZoom ? [preferredZoom] : [preferredZoom, fallbackZoom];
 	let lastError = 'Failed to stitch selected area image.';
 
@@ -168,7 +158,7 @@ async function fetchStitchedImageWithFallback(
 			zoom: zoom.toString(),
 		});
 
-		const response = await fetch(`${API_URL}?${params.toString()}`);
+		const response = await fetch(`${TILE_STITCH_URL}?${params.toString()}`);
 		if (!response.ok) {
 			const errorText = await response.text();
 			lastError = errorText || `Tile stitch failed with status ${response.status}`;
@@ -181,29 +171,10 @@ async function fetchStitchedImageWithFallback(
 			continue;
 		}
 
-		const contentType = response.headers.get('content-type') ?? '';
-		if (!contentType.startsWith('image/')) {
-			const text = await response.text();
-			lastError = text || `Expected image response but got ${contentType || 'unknown content-type'}`;
-			continue;
-		}
-
-		const blob = await response.blob();
-		if (blob.size === 0) {
-			lastError = 'Tile stitch returned an empty image.';
-			continue;
-		}
-
-		return { blob, usedZoom: zoom, sessionIdHeader };
+		return { usedZoom: zoom, sessionIdHeader };
 	}
 
 	throw new Error(lastError);
-}
-
-function submitForAnalysis() {
-	if (!sessionId.value) return;
-	
-	router.push({ name: 'analysis', query: { sessionId: sessionId.value } });
 }
 
 </script>
@@ -275,58 +246,48 @@ function submitForAnalysis() {
 	text-align: center;
 }
 
-.resultCard {
+
+.loadingCard {
 	position: absolute;
 	left: 10px;
-	bottom: 20px;
-	width: min(420px, calc(100vw - 20px));
+	top: 10px;
+	width: min(320px, calc(100vw - 20px));
 	background-color: color-mix(in srgb, var(--sec) 88%, transparent);
 	border: 3px solid rgba(255, 255, 255, 0.1);
 	border-radius: 8px;
 	padding: 10px;
 	z-index: 115;
 	display: flex;
-	flex-direction: column;
+	align-items: center;
 	gap: 8px;
-}
-
-.resultCard img {
-	width: 100%;
-	max-height: 220px;
-	object-fit: contain;
-	border-radius: 6px;
-	border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.resultCard a {
-	color: var(--accent);
-	text-decoration: underline;
-	font-size: 14px;
-}
-
-.meta {
-	font-size: 13px;
-	opacity: 0.8;
 }
 
 .error {
 	color: var(--errorBorder);
 }
 
-.analysis-button {
-	position: fixed;
-	top: 10px;
+.errorCard {
+	position: absolute;
 	left: 10px;
-	z-index: 120;
-	padding: 10px 16px;
+	bottom: 20px;
+	width: min(360px, calc(100vw - 20px));
+	background-color: color-mix(in srgb, var(--errorBG) 88%, transparent);
+	border: 3px solid color-mix(in srgb, var(--errorBorder) 55%, transparent);
 	border-radius: 8px;
-	border: 2px solid rgba(255, 255, 255, 0.2);
-	background: color-mix(in srgb, var(--goodBorder) 35%, var(--sec));
-	font-weight: 600;
-	cursor: pointer;
+	padding: 10px;
+	z-index: 115;
 }
 
-.analysis-button:hover {
-	filter: brightness(1.1);
+.spin {
+	animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
 }
 </style>

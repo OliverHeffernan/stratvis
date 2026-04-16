@@ -1,5 +1,5 @@
 <template>
-	<div class="section-header">
+	<button @click="$emit('click')" class="section-header">
 		<div
 			class="section-icon"
 			:style="{
@@ -10,7 +10,7 @@
 			<i :class="icon"></i>
 		</div>
 		<h2 class="section-title"><slot /></h2>
-	</div>
+	</button>
 
 </template>
 <script setup lang="ts">
@@ -18,15 +18,22 @@ defineProps<{
 	icon: string;
 	color?: string;
 }>();
+defineEmits<{
+	(e: 'click'): void;
+}>();
 </script>
 
 <style scoped>
 .section-header {
+	background: none;
+	border: none;
+	font-size: 18px;
 	display: flex;
 	align-items: center;
 	margin-bottom: 16px;
 	gap: 12px;
 	width: 100%;
+	cursor: pointer;
 }
 
 .section-icon {

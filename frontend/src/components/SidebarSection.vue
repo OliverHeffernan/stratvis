@@ -1,8 +1,8 @@
 <template>
 	<div class="sidebar-section">
-		<SectionHeader :color="color" :icon="icon">
+		<SectionHeader @click="isOpen = !isOpen" :color="color" :icon="icon">
 			{{ title }}
-			<button @click="isOpen = !isOpen" class="toggle-button">
+			<button class="toggle-button">
 				<i v-if="isOpen" class="fa-solid fa-chevron-up"></i>
 				<i v-else class="fa-solid fa-chevron-down"></i>
 			</button>
