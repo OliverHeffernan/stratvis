@@ -37,7 +37,7 @@ import BubblePopup from '@/components/BubblePopup.vue';
 import RenderedMarkdown from '@/components/RenderedMarkdown.vue';
 import { authFetch, clearAuthToken, getApiBase } from '@/lib/auth';
 import type Session from '@/types/Session';
-import type { AnalysisPoiWithMap, AnalysisWithMap, Snapshot } from '@/types/Session';
+import type { AnalysisWithMap, Snapshot } from '@/types/Session';
 
 const route = useRoute();
 const router = useRouter();
@@ -112,13 +112,14 @@ function initMap(): void {
 		return;
 	}
 
+	console.log('init');
 	map = new maplibregl.Map({
 		container: 'analysis-map',
 		center: [
 			(snapshot.value.minLng + snapshot.value.maxLng) / 2,
 			(snapshot.value.minLat + snapshot.value.maxLat) / 2,
 		],
-		zoom: Math.max(snapshot.value.usedZoom - 1, 1),
+		zoom: Math.max(snapshot.value.usedZoom, 1),
 		hash: true,
 		style: {
 			version: 8,
@@ -153,11 +154,15 @@ function fitToSnapshot(): void {
 	if (!map || !snapshot.value) {
 		return;
 	}
+	const height = snapshot.value.maxLat - snapshot.value.minLat;
+	const width = snapshot.value.maxLng - snapshot.value.minLng;
+	const paddingFactorLng = 0.4;
+	const paddingFactorLat = 0.02;
 
 	map.fitBounds(
 		[
 			[snapshot.value.minLng, snapshot.value.minLat],
-			[snapshot.value.maxLng, snapshot.value.maxLat],
+			[snapshot.value.maxLng + width * paddingFactorLng, snapshot.value.maxLat + height * paddingFactorLat],
 		],
 		{ padding: 40, duration: 0 },
 	);

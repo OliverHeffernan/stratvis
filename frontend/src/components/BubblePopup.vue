@@ -6,16 +6,16 @@
 		}"
 	>
 		<slot />
+		<button
+			class="close-button"
+			:class="{
+				closing,
+			}"
+			@click="close"
+		>
+			<i class="fa-solid fa-xmark"></i>
+		</button>
 	</div>
-	<button
-		class="close-button"
-		:class="{
-			closing,
-		}"
-		@click="close"
-	>
-		<i class="fa-solid fa-xmark"></i>
-	</button>
 	<div
 		class="shadow"
 		:class="{
@@ -56,7 +56,7 @@ async function close(): Promise<void> {
 	border: 1px solid var(--border);
 	border-radius: 12px;
 	padding: 25px;
-	z-index: 200;
+	z-index: 10003;
 
 	height: 90vh;
 
@@ -68,7 +68,7 @@ async function close(): Promise<void> {
 	inset: 0;
 	background: rgba(0, 0, 0, 0.45);
 	backdrop-filter: blur(10px);
-	z-index: 150;
+	z-index: 10000;
 }
 
 .close-button {

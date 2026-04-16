@@ -5,6 +5,7 @@
 		@mouseup="end"
 		@mouseleave="cancel"
 		@mousemove="move"
+		@contextmenu.prevent="handleRightClick"
 	></div>
 	<div v-if="selectionRect" class="selection" :style="selectionStyle">
 		<div class="endHandle handle"></div>
@@ -25,11 +26,13 @@ type SelectionRect = {
 const emit = defineEmits<{
 	complete: [rect: SelectionRect];
 	cancelled: [];
+	allClick: [];
 }>();
 
 const startPoint = ref<{ x: number; y: number } | null>(null);
 const currentPoint = ref<{ x: number; y: number } | null>(null);
 let dragging = false;
+let rightClickSelecting = false;
 
 const selectionRect = computed(() => {
 	if (!startPoint.value || !currentPoint.value) {
@@ -74,44 +77,70 @@ const selectionStyle = computed(() => {
 });
 
 const start = (e: MouseEvent) => {
-	
+	emit('allClick');
+	if (e.button !== 0) {
+		return;
+	}
 	startPoint.value = { x: e.clientX, y: e.clientY };
 	currentPoint.value = null;
 	dragging = true;
 };
 
 const end = (e: MouseEvent) => {
+	if (e.button !== 0) {
+		return;
+	}
 	if (startPoint.value) {
 		currentPoint.value = { x: e.clientX, y: e.clientY };
-		if (selectionRect.value && selectionRect.value.width > 0 && selectionRect.value.height > 0) {
-			emit('complete', {
-				x0: selectionRect.value.x0,
-				y0: selectionRect.value.y0,
-				x1: selectionRect.value.x1,
-				y1: selectionRect.value.y1,
-				width: selectionRect.value.width,
-				height: selectionRect.value.height,
-			});
-		}
+		emitIfSelectionExists();
 	}
 	dragging = false;
 };
 
 const cancel = () => {
-	
-	if (!dragging) return;
+	if (!dragging && !rightClickSelecting) return;
 	startPoint.value = null;
 	currentPoint.value = null;
 	dragging = false;
+	rightClickSelecting = false;
 	emit('cancelled');
 };
 
 const move = (e: MouseEvent) => {
-	if (!dragging) return;
-	
+	if (!dragging && !rightClickSelecting) return;
 	if (startPoint.value) {
 		currentPoint.value = { x: e.clientX, y: e.clientY };
 	}
+};
+
+const handleRightClick = (e: MouseEvent) => {
+	if (!rightClickSelecting) {
+		emit('allClick');
+		startPoint.value = { x: e.clientX, y: e.clientY };
+		currentPoint.value = { x: e.clientX, y: e.clientY };
+		rightClickSelecting = true;
+		return;
+	}
+
+	currentPoint.value = { x: e.clientX, y: e.clientY };
+	emitIfSelectionExists();
+	startPoint.value = null;
+	currentPoint.value = null;
+	rightClickSelecting = false;
+};
+
+const emitIfSelectionExists = () => {
+	if (!selectionRect.value || selectionRect.value.width <= 0 || selectionRect.value.height <= 0) {
+		return;
+	}
+	emit('complete', {
+		x0: selectionRect.value.x0,
+		y0: selectionRect.value.y0,
+		x1: selectionRect.value.x1,
+		y1: selectionRect.value.y1,
+		width: selectionRect.value.width,
+		height: selectionRect.value.height,
+	});
 };
 
 </script>

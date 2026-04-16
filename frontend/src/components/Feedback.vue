@@ -90,5 +90,7 @@ textarea {
 	border-radius: 4px;
 	resize: vertical;
 	color: black;
+	width: 100%;
+	box-sizing: border-box;
 }
 </style>
