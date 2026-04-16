@@ -40,8 +40,7 @@ public class TileController {
 		);
 
 		byte[] png = stitchResult.png();
-		String base64Image = java.util.Base64.getEncoder().encodeToString(png);
-		int id = SessionsManager.addNewSessionWithImage(base64Image);
+		int id = SessionsManager.addNewSessionWithSnapshot(minLng, minLat, maxLng, maxLat, stitchResult.usedZoom());
 
 		// put the id into the response header so the client can use it for future requests related to this session
 		// in javascript the client can do something like this to extract the session id from the response header:

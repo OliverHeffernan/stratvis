@@ -1,8 +1,8 @@
 package olihef.stratvis.sessions;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.time.Instant;
-import java.lang.Iterable;
 import com.fasterxml.jackson.databind.JsonNode;
 
 public class Session {
@@ -15,12 +15,14 @@ public class Session {
 		this.snapshots = new ArrayList<>();
 		this.creationTime = Instant.now();
 	}
-	public Session addImage(String image) {
+
+	public Session addSnapshot(double minLng, double minLat, double maxLng, double maxLat, int usedZoom) {
 		String label = "Image %d".formatted(snapshots.size());
-		Snapshot snapshot = new Snapshot(image, label, null);
+		Snapshot snapshot = new Snapshot(label, null, minLng, minLat, maxLng, maxLat, usedZoom);
 		this.snapshots.add(snapshot);
 		return this;
 	}
+
 	public Session setAnalysis(JsonNode analysis, int index) {
 		if (index < 0 || index >= this.snapshots.size()) {
 			throw new IllegalArgumentException("Invalid image index for analysis.");
@@ -37,11 +39,7 @@ public class Session {
 	}
 
 	public String getLatestImageBase64() {
-		if (this.snapshots.isEmpty()) {
-			throw new IllegalStateException("No images available for this session.");
-		}
-		String latestImage = snapshots.get(snapshots.size() - 1).base64Image();
-		return latestImage;
+		throw new UnsupportedOperationException("Snapshots no longer store base64 images.");
 	}
 
 	public String toJson() {

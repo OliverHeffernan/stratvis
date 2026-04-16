@@ -1,10 +1,10 @@
 package olihef.stratvis.sessions;
+
 import java.util.HashMap;
 import java.util.Map;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.web.multipart.MultipartFile;
-import java.util.Base64;
-import java.io.IOException;
+
 public class SessionsManager {
 	private static Map<Integer, Session> sessions = new HashMap<>();
 	private static int lastSession = 0;
@@ -15,15 +15,21 @@ public class SessionsManager {
 		return lastSession;
 	}
 	public static int addNewSessionWithImage(String image) {
+		throw new UnsupportedOperationException("Image-only session creation is no longer supported.");
+	}
+
+	public static int addNewSessionWithSnapshot(double minLng, double minLat, double maxLng, double maxLat, int usedZoom) {
 		lastSession++;
-		Session session = new Session(lastSession).addImage(image);
+		Session session = new Session(lastSession).addSnapshot(minLng, minLat, maxLng, maxLat, usedZoom);
 		sessions.put(lastSession, session);
 		return lastSession;
 	}
-	public static int addNewSessionWithImageAndAnalysis(MultipartFile image, JsonNode analysis) throws IOException {
+
+	public static int addNewSessionWithImageAndAnalysis(MultipartFile image, JsonNode analysis) {
 		lastSession++;
-		String base64Image = Base64.getEncoder().encodeToString(image.getBytes());
-		Session session = new Session(lastSession).addImage(base64Image).setAnalysis(analysis, 0);
+		Session session = new Session(lastSession)
+			.addSnapshot(0.0, 0.0, 0.0, 0.0, 0)
+			.setAnalysis(analysis, 0);
 		sessions.put(lastSession, session);
 		return lastSession;
 	}
