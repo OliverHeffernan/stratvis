@@ -273,7 +273,7 @@ async function handleSelectionComplete(rect: SelectionRect): Promise<void> {
 			throw new Error(bodyText || `Analyze session failed with status ${analyzeResponse.status}`);
 		}
 
-		router.push({ name: 'analysis', query: { sessionId: sessionIdHeader } });
+		router.push({ name: 'analysis', params: { sessionId: sessionIdHeader } });
 	} catch (error) {
 		fetchError.value = error instanceof Error ? error.message : 'Failed to stitch selected area image.';
 	} finally {
