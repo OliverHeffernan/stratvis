@@ -11,7 +11,6 @@ import org.springframework.stereotype.Repository;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 
 @Repository
@@ -43,6 +42,13 @@ public class SessionRepository {
         }
         return key.intValue();
     }
+
+	public void deleteSession(int sessionId) {
+		String deleteSnapshotsSql = "DELETE FROM session_snapshots WHERE session_id = ?";
+		jdbcTemplate.update(deleteSnapshotsSql, sessionId);
+		String deleteSessionSql = "DELETE FROM sessions WHERE id = ?";
+		jdbcTemplate.update(deleteSessionSql, sessionId);
+	}
 
     public int countSnapshots(int sessionId) {
         String sql = "SELECT COUNT(*) FROM session_snapshots WHERE session_id = ?";
@@ -96,7 +102,7 @@ public class SessionRepository {
         List<Session> sessions = jdbcTemplate.query(sessionSql, (rs, rowNum) -> new Session(
             rs.getInt("id"),
             Instant.parse(rs.getString("created_at")),
-            new ArrayList<>()
+			null
         ), sessionId, userId);
 
         if (sessions.isEmpty()) {
@@ -104,7 +110,8 @@ public class SessionRepository {
         }
 
         Session session = sessions.get(0);
-        session.snapshots().addAll(fetchSnapshotsBySessionId(sessionId));
+		Snapshot snapshot = fetchSnapshotsBySessionId(sessionId).get(0);
+		session.snapshot(snapshot);
         return session;
     }
 
@@ -150,6 +157,16 @@ public class SessionRepository {
         String sql = "SELECT COUNT(*) FROM sessions WHERE id = ? AND user_id = ?";
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class, sessionId, userId);
         return count != null && count > 0;
+    }
+
+    public List<Integer> findSessionIdsByUserId(long userId) {
+        String sql = """
+            SELECT id
+            FROM sessions
+            WHERE user_id = ?
+            ORDER BY id DESC
+            """;
+        return jdbcTemplate.query(sql, (rs, rowNum) -> rs.getInt("id"), userId);
     }
 
     private List<Snapshot> fetchSnapshotsBySessionId(int sessionId) {

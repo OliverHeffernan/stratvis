@@ -57,4 +57,9 @@ body {
 * {
 	color: var(--text);
 }
+
+.margins {
+	width: min(90%, 1200px);
+	margin: 0 auto;
+}
 </style>

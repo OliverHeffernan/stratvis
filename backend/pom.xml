@@ -56,6 +56,15 @@
 		<scope>test</scope>
 	</dependency>
 
+	<!-- Source: https://mvnrepository.com/artifact/com.squareup.okhttp/okhttp -->
+	<dependency>
+		<groupId>com.squareup.okhttp</groupId>
+		<artifactId>okhttp</artifactId>
+		<version>2.7.5</version>
+		<scope>compile</scope>
+	</dependency>
+
+
 </dependencies>
 
 <build>
@@ -72,6 +81,39 @@
 		</resource>
 	</resources>
 	<plugins>
+		<plugin>
+			<groupId>org.codehaus.mojo</groupId>
+			<artifactId>properties-maven-plugin</artifactId>
+			<version>1.2.1</version>
+			<executions>
+				<execution>
+					<phase>initialize</phase>
+					<goals>
+						<goal>read-project-properties</goal>
+					</goals>
+					<configuration>
+						<files>
+							<file>${project.basedir}/.env</file>
+						</files>
+						<quiet>true</quiet>
+					</configuration>
+				</execution>
+			</executions>
+		</plugin>
+		<plugin>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-surefire-plugin</artifactId>
+			<configuration>
+				<environmentVariables>
+					<GEOAPIFY_API_KEY>${GEOAPIFY_API_KEY}</GEOAPIFY_API_KEY>
+					<OPENAI_API_KEY>${OPENAI_API_KEY}</OPENAI_API_KEY>
+					<SQLITE_DB_PATH>${project.build.directory}/stratvis-test.db</SQLITE_DB_PATH>
+				</environmentVariables>
+				<systemPropertyVariables>
+					<spring.datasource.url>jdbc:sqlite:${project.build.directory}/stratvis-test.db</spring.datasource.url>
+				</systemPropertyVariables>
+			</configuration>
+		</plugin>
 		<plugin>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-maven-plugin</artifactId>

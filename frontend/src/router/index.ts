@@ -5,6 +5,7 @@ import AnalysisView from '@/views/AnalysisView.vue';
 import LoginView from '@/views/LoginView.vue';
 import RegisterView from '@/views/RegisterView.vue';
 import SignOutView from '@/views/SignOutView.vue';
+import SnapshotsView from '@/views/SnapshotsView.vue';
 import { isAuthenticated } from '@/lib/auth';
 
 const router: Router = createRouter({
@@ -38,7 +39,8 @@ const router: Router = createRouter({
 			{
 				component: AnalysisView,
 				name: 'analysis',
-				path: '/analysis',
+				path: '/analysis/:sessionId',
+				props: [ 'sessionId' ],
 				meta: { requiresAuth: true },
 			},
 			{
@@ -46,6 +48,12 @@ const router: Router = createRouter({
 				name: 'signout',
 				path: '/signout',
 			},
+			{
+				component: SnapshotsView,
+				name: 'snapshots',
+				meta: { requiresAuth: true },
+				path: '/snapshots',
+			}
 		],
 });
 

@@ -8,15 +8,13 @@ import olihef.stratvis.auth.AuthContext;
 import olihef.stratvis.auth.AuthenticatedUser;
 import olihef.stratvis.service.ImageAnalysisService;
 import olihef.stratvis.service.TileStitchService;
-import olihef.stratvis.sessions.Session;
-import olihef.stratvis.sessions.SessionRepository;
-import olihef.stratvis.sessions.SessionService;
-import olihef.stratvis.sessions.Snapshot;
+import olihef.stratvis.sessions.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -91,6 +89,25 @@ public class ImageAnalysisController {
         Session session = sessionService.getOwnedSessionOrThrow(sessionId, user.id());
         return ResponseEntity.ok(sessionService.toJson(session));
     }
+
+    @GetMapping(value = "/sessions/ids", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<Map<String, String>>> getSessionIds(HttpServletRequest request) {
+        AuthenticatedUser user = AuthContext.requireUser(request);
+        List<Integer> sessionIds = sessionService.getOwnedSessionIds(user.id());
+		List<Map<String, String>> sessionInfos = sessionIds.stream()
+			.map(id -> sessionService.getOwnedSessionOrThrow(id, user.id()))
+			.map(SessionInfo::of)
+			.map(SessionInfo::toMap)
+			.toList();
+        return ResponseEntity.ok(sessionInfos);
+    }
+
+	@DeleteMapping(value = "/session", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Map<String, String>> deleteSession(HttpServletRequest request, @RequestParam("sessionId") int sessionId) {
+		AuthenticatedUser user = AuthContext.requireUser(request);
+		sessionService.deleteSession(sessionId, user.id());
+		return ResponseEntity.ok(Map.of("status", "deleted"));
+	}
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, String>> handleBadRequest(IllegalArgumentException ex) {

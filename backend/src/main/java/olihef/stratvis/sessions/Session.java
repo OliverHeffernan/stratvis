@@ -1,16 +1,15 @@
 package olihef.stratvis.sessions;
 
-import java.util.List;
 import java.time.Instant;
 
 public class Session {
 	private final int sessionId;
 	private final Instant creationTime;
-	private final List<Snapshot> snapshots;
+	private Snapshot snapshot;
 
-	public Session(int sessionId, Instant creationTime, List<Snapshot> snapshots) {
+	public Session(int sessionId, Instant creationTime, Snapshot snapshot) {
 		this.sessionId = sessionId;
-		this.snapshots = snapshots;
+		this.snapshot = snapshot;
 		this.creationTime = creationTime;
 	}
 
@@ -22,7 +21,11 @@ public class Session {
 		return creationTime;
 	}
 
-	public List<Snapshot> snapshots() {
-		return snapshots;
+	public Snapshot snapshot() {
+		return snapshot;
+	}
+
+	public void snapshot(Snapshot snapshot) {
+		this.snapshot = snapshot;
 	}
 }

@@ -3,6 +3,7 @@
 		class="bubble-popup"
 		:class="{
 			closing,
+			notFullHeight,
 		}"
 	>
 		<slot />
@@ -27,6 +28,9 @@
 import { ref, nextTick, onMounted } from 'vue';
 const emit = defineEmits<{
 	(e: 'close'): void;
+}>();
+defineProps<{
+	notFullHeight?: boolean;
 }>();
 
 const closing = ref(true);
@@ -93,5 +97,9 @@ async function close(): Promise<void> {
 
 .shadow.closing {
 	backdrop-filter: blur(0);
+}
+
+.notFullHeight {
+	height: auto;
 }
 </style>

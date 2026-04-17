@@ -23,6 +23,6 @@ export interface Snapshot {
 
 export default interface Session {
 	sessionId: number;
-	snapshots: Snapshot[];
+	snapshot: Snapshot;
 	creationTime: string;
 }

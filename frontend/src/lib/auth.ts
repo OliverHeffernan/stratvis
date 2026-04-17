@@ -1,4 +1,7 @@
+import { ref, computed } from 'vue';
 const TOKEN_STORAGE_KEY = 'stratvis.auth.token';
+const authToken = ref<string | null>(window.localStorage.getItem(TOKEN_STORAGE_KEY));
+export const isAuthenticatedRef = computed(() => !!authToken.value?.trim());
 
 const apiBase = (
 	(import.meta.env.VITE_API_URL as string | undefined) ??
@@ -16,10 +19,12 @@ export function getAuthToken(): string | null {
 
 export function setAuthToken(token: string): void {
 	window.localStorage.setItem(TOKEN_STORAGE_KEY, token);
+	authToken.value = token;
 }
 
 export function clearAuthToken(): void {
 	window.localStorage.removeItem(TOKEN_STORAGE_KEY);
+	authToken.value = null;
 }
 
 export function isAuthenticated(): boolean {

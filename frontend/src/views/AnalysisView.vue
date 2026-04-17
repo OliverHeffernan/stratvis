@@ -57,7 +57,12 @@ const poiMarkers: maplibregl.Marker[] = [];
 let hoveredRangeFeatureId: string | number | null = null;
 
 onMounted(async () => {
-	const sessionId = String(route.query.sessionId ?? '');
+	const sessionIdParam = route.params.sessionId;
+	const sessionIdFromParam = Array.isArray(sessionIdParam) ? sessionIdParam[0] : sessionIdParam;
+	const sessionIdFromQuery = Array.isArray(route.query.sessionId)
+		? route.query.sessionId[0]
+		: route.query.sessionId;
+	const sessionId = String(sessionIdFromParam ?? sessionIdFromQuery ?? '');
 	if (!sessionId) {
 		error.value = 'Missing sessionId in URL.';
 		isLoading.value = false;
@@ -80,7 +85,7 @@ onMounted(async () => {
 		}
 
 		const payload = (await response.json()) as Session;
-		const latestSnapshot = payload.snapshots.at(-1);
+		const latestSnapshot = payload.snapshot;
 		if (!latestSnapshot) {
 			throw new Error('Session has no snapshots to display.');
 		}

@@ -14,7 +14,7 @@ public class WebCorsConfig implements WebMvcConfigurer {
 				"http://localhost:5173",
 				"https://stratvis.olihef.com"
 			)
-			.allowedMethods("GET", "POST", "OPTIONS")
+			.allowedMethods("GET", "POST", "OPTIONS", "DELETE")
 			.allowedHeaders("*")
 			.exposedHeaders("X-Session-Id", "X-Used-Zoom")
 			.maxAge(3600);

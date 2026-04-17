@@ -1,8 +1,9 @@
 package olihef.stratvis.sessions;
 
+import olihef.stratvis.geoapify.GeoapifyLabeller;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.stereotype.Service;
 
@@ -14,10 +15,12 @@ public class SessionService {
 
     private final SessionRepository sessionRepository;
     private final ObjectMapper objectMapper;
+	private final GeoapifyLabeller geoapifyLabeller;
 
-    public SessionService(SessionRepository sessionRepository, ObjectMapper objectMapper) {
+    public SessionService(SessionRepository sessionRepository, ObjectMapper objectMapper, GeoapifyLabeller geoapifyLabeller) {
         this.sessionRepository = sessionRepository;
         this.objectMapper = objectMapper;
+		this.geoapifyLabeller = geoapifyLabeller;
     }
 
     public int createSessionWithSnapshot(
@@ -30,7 +33,10 @@ public class SessionService {
     ) {
         Instant now = Instant.now();
         int sessionId = sessionRepository.createSession(userId, now);
-        sessionRepository.addSnapshot(sessionId, "Image 0", minLng, minLat, maxLng, maxLat, usedZoom, null, now);
+		double lng = (minLng + maxLng) / 2.0;
+		double lat = (minLat + maxLat) / 2.0;
+		String label = this.geoapifyLabeller.label(lng, lat);
+        sessionRepository.addSnapshot(sessionId, label, minLng, minLat, maxLng, maxLat, usedZoom, null, now);
         return sessionId;
     }
 
@@ -66,27 +72,39 @@ public class SessionService {
         sessionRepository.updateSnapshotAnalysis(snapshotId, analysis);
     }
 
+    public List<Integer> getOwnedSessionIds(long userId) {
+        return sessionRepository.findSessionIdsByUserId(userId);
+    }
+
+	public void deleteSession(int sessionId, long userId) throws SecurityException, IllegalArgumentException {
+		if (!sessionRepository.isSessionOwnedByUser(sessionId, userId)) {
+			if (sessionRepository.existsSession(sessionId)) {
+				throw new SecurityException("You do not have access to this session.");
+			}
+			throw new IllegalArgumentException("Session with id " + sessionId + " does not exist.");
+		}
+		sessionRepository.deleteSession(sessionId);
+	}
+
     public String toJson(Session session) {
         ObjectNode root = objectMapper.createObjectNode();
         root.put("sessionId", session.sessionId());
         root.put("creationTime", session.creationTime().toString());
-        ArrayNode snapshots = root.putArray("snapshots");
+		ObjectNode snapshotNode = root.putObject("snapshot");
+		Snapshot snapshot = session.snapshot();
 
-        for (Snapshot snapshot : session.snapshots()) {
-            ObjectNode snapshotNode = snapshots.addObject();
-            snapshotNode.put("label", snapshot.label());
-            snapshotNode.put("minLng", snapshot.minLng());
-            snapshotNode.put("minLat", snapshot.minLat());
-            snapshotNode.put("maxLng", snapshot.maxLng());
-            snapshotNode.put("maxLat", snapshot.maxLat());
-            snapshotNode.put("usedZoom", snapshot.usedZoom());
-            snapshotNode.put("creationTime", snapshot.creationTime().toString());
-            if (snapshot.analysis() == null) {
-                snapshotNode.putNull("analysis");
-            } else {
-                snapshotNode.set("analysis", snapshot.analysis());
-            }
-        }
+		snapshotNode.put("label", snapshot.label());
+		snapshotNode.put("minLng", snapshot.minLng());
+		snapshotNode.put("minLat", snapshot.minLat());
+		snapshotNode.put("maxLng", snapshot.maxLng());
+		snapshotNode.put("maxLat", snapshot.maxLat());
+		snapshotNode.put("usedZoom", snapshot.usedZoom());
+		snapshotNode.put("creationTime", snapshot.creationTime().toString());
+		if (snapshot.analysis() == null) {
+			snapshotNode.putNull("analysis");
+		} else {
+			snapshotNode.set("analysis", snapshot.analysis());
+		}
 
         try {
             return objectMapper.writeValueAsString(root);

@@ -2,7 +2,7 @@
 	<nav class="background">
 		<RouterLink to="/snapshots" class="nav-link">Your Snapshots</RouterLink>
 		<RouterLink to="/select" class="nav-link">New Snapshot</RouterLink>
-		<RouterLink v-if="authed" to="/signout" class="nav-link">Sign Out</RouterLink>
+		<RouterLink v-if="isAuthenticatedRef" to="/signout" class="nav-link">Sign Out</RouterLink>
 		<template v-else>
 			<RouterLink to="/register" class="nav-link">Register</RouterLink>
 			<RouterLink to="/login" class="nav-link">Log In</RouterLink>
@@ -12,9 +12,7 @@
 </template>
 <script setup lang="ts">
 import { RouterLink } from 'vue-router';
-import { isAuthenticated } from '@/lib/auth';
-import { computed } from 'vue';
-const authed = computed(() => isAuthenticated());
+import { isAuthenticatedRef } from '@/lib/auth';
 </script>
 <style scoped>
 nav {
