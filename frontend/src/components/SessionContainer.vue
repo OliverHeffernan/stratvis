@@ -26,7 +26,7 @@ const props = defineProps<{
 }>();
 onMounted(() => {
 	console.log('SessionContainer with id', props.session.sessionId, 'mounted');
-})
+});
 
 function deleteThis(): void {
 	deleteSession(props.session.sessionId)
@@ -69,5 +69,6 @@ function formatDate(date: Date): string {
 	position: absolute;
 	right: 30px;
 	bottom: 30px;
+	font-size: 18px;
 }
 </style>

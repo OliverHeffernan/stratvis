@@ -10,10 +10,11 @@ REST API that accepts a high-altitude image and returns environmental metrics JS
 ## Setup
 
 1. Copy `.env.example` to `.env`
-2. Put your key in `.env`:
+2. Put your keys in `.env`:
 
 ```bash
 OPENAI_API_KEY=your_real_key_here
+GEOAPIFY_API_KEY=your_real_key_here
 ```
 
 The app reads `OPENAI_API_KEY` from either:

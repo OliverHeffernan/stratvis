@@ -1,11 +1,11 @@
 <template>
-	<div class="container">
+	<div class="bubble">
 		<i class="fa-solid fa-check"></i>
 		<p><slot /></p>
 	</div>
 </template>
 <style scoped>
-.container {
+.bubble {
 	position: fixed;
 	right: 20px;
 	bottom: 20px;
@@ -14,16 +14,20 @@
 
 	display: flex;
 	flex-direction: row;
+	justify-content: center;
+	align-items: center;
 	gap: 10px;
 	padding: 20px;
 	border: 2px solid var(--goodBorder);
 	border-radius: 10px;
-	background-color: var(--sec);
+	/*background-color: var(--sec);*/
+	background-color: color-mix(in srgb, var(--sec) 80%, transparent);
+	backdrop-filter: blur(10px);
 	opacity: 1;
 	z-index: 10004;
 }
 
-.container i {
+.bubble i {
 	color: var(--goodBorder);
 	font-size: 20px;
 }

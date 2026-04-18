@@ -45,6 +45,7 @@ onMounted(async () => {
 }
 
 .container {
+	position: static;
 	display: flex;
 	flex-direction: column;
 	gap: 20px;
