@@ -35,7 +35,6 @@ onMounted(async () => {
 	for (const session of sessions.value) {
 		session.dateObject = new Date(session.creationTime);
 	}
-	console.log(sessions.value);
 });
 
 </script>

@@ -117,7 +117,6 @@ function initMap(): void {
 		return;
 	}
 
-	console.log('init');
 	map = new maplibregl.Map({
 		container: 'analysis-map',
 		center: [

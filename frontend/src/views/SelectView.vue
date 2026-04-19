@@ -33,7 +33,6 @@ import LoadingView from './LoadingView.vue';
 const clicked = ref(false);
 
 function clickedOff() {
-	console.log('clickedOff');
 	clicked.value = true;
 }
 

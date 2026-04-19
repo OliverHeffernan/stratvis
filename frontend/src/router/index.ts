@@ -40,7 +40,7 @@ const router: Router = createRouter({
 				component: AnalysisView,
 				name: 'analysis',
 				path: '/analysis/:sessionId',
-				props: [ 'sessionId' ],
+				props: true,
 				meta: { requiresAuth: true },
 			},
 			{

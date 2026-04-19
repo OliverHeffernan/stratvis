@@ -16,7 +16,7 @@ import ConfirmBubble from './ConfirmBubble.vue';
 
 import type SessionInfo from '@/types/SessionInfo';
 import { RouterLink } from 'vue-router';
-import { onMounted, ref } from 'vue';
+import { ref } from 'vue';
 import { deleteSession } from '@/lib/database';
 
 const showDeleteModal = ref(false);
@@ -24,9 +24,6 @@ const deleted = ref(false);
 const props = defineProps<{
 	session: SessionInfo;
 }>();
-onMounted(() => {
-	console.log('SessionContainer with id', props.session.sessionId, 'mounted');
-});
 
 function deleteThis(): void {
 	deleteSession(props.session.sessionId)
