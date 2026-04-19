@@ -1,8 +1,9 @@
 <template>
 	<div class="gap"></div>
-	<div class="container margins">
+	<div v-if="sessions.length > 0" class="container margins">
 		<SessionContainer v-for="session in sessions" :key="session.sessionId" :session="session" />
 	</div>
+	<EmptySnapshotsState v-else class="margins" />
 	<div class="gap"></div>
 </template>
 <script setup lang="ts">
@@ -10,6 +11,7 @@ import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { authFetch, clearAuthToken, getApiBase } from '@/lib/auth';
 import SessionContainer from '@/components/SessionContainer.vue';
+import EmptySnapshotsState from '@/components/EmptySnapshotsState.vue';
 import type SessionInfo from '@/types/SessionInfo';
 const sessions = ref<SessionInfo[]>([]);
 const router = useRouter();
